@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>معهد انشون - برامج تدريبية احترافية | Inchon Institute</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Montserrat:wght@300;400;600;700;800&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-     <!-- EmailJS SDK -->
+    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
         (function(){
@@ -13,7 +13,7 @@
         })();
     </script>
     <style>
-        * {
+ * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -1054,19 +1054,19 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label data-ar="الاسم الكامل *" data-en="Full Name *">الاسم الكامل *</label>
-                        <input type="text" placeholder="أدخل اسمك الكامل" required>
+                        <input type="text" name="full_name" placeholder="أدخل اسمك الكامل" required>
                     </div>
                     <div class="form-group">
                         <label data-ar="البريد الإلكتروني *" data-en="Email *">البريد الإلكتروني *</label>
-                        <input type="email" placeholder="your.email@example.com" required>
+                        <input type="email" name="email" placeholder="your.email@example.com" required>
                     </div>
                     <div class="form-group">
                         <label data-ar="رقم الهاتف *" data-en="Phone Number *">رقم الهاتف *</label>
-                        <input type="tel" placeholder="" required>
+                        <input type="tel" name="phone" placeholder="" required>
                     </div>
                     <div class="form-group">
                         <label data-ar="اختر القسم *" data-en="Select Department *">اختر القسم *</label>
-                        <select required>
+                        <select name="department" required>
                             <option value="" data-ar="اختر قسماً" data-en="Choose a department">اختر قسماً</option>
                             <option value="cs" data-ar="علوم الحاسوب" data-en="Computer Science">علوم الحاسوب</option>
                             <option value="accounting" data-ar="المحاسبة والمالية" data-en="Accounting & Finance">المحاسبة والمالية</option>
@@ -1078,7 +1078,7 @@
                     </div>
                     <div class="form-group full-width">
                         <label data-ar="لماذا تريد الانضمام إلى معهد انشون؟" data-en="Why do you want to join Inchon Institute?">لماذا تريد الانضمام إلى معهد انشون؟</label>
-                        <textarea placeholder="أخبرنا عن أهدافك وتطلعاتك..."></textarea>
+                        <textarea name="message" placeholder="أخبرنا عن أهدافك وتطلعاتك..."></textarea>
                     </div>
                 </div>
                 <center>
@@ -1092,7 +1092,7 @@
 
 <!-- MAP SECTION -->
     <section id="contact" class="map-section">
-        <h2 class="section-title" data-ar="زر حرمنا الجامعي" data-en="Visit Our Campus">زر مركزنا </h2>
+        <h2 class="section-title" data-ar="زر مركزنا" data-en="Visit Our Campus">زر مركزنا </h2>
         <div class="map-container">
             <!-- EXACT coordinates: 15.7185380, 32.5141360 -->
             <iframe 
@@ -1162,7 +1162,7 @@
         </div>
     </footer>
 
-    <!-- WHATSAPP FLOAT BUTTON -->
+   <!-- WHATSAPP FLOAT BUTTON -->
     <a href="https://wa.me/249912917704" target="_blank" class="whatsapp-float">
         💬
     </a>
@@ -1315,66 +1315,82 @@
         document.querySelector('form').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const form = this;
             const submitBtn = document.querySelector('.submit-btn');
             const originalBtnText = submitBtn.querySelector('span').textContent;
             
-            // Show loading state
-            submitBtn.querySelector('span').textContent = currentLang === 'ar' ? 'جاري الإرسال...' : 'Sending...';
+            // Validate required fields manually
+            const fullName  = document.querySelector('input[name="full_name"]').value.trim();
+            const email     = document.querySelector('input[name="email"]').value.trim();
+            const phone     = document.querySelector('input[name="phone"]').value.trim();
+            const dept      = document.querySelector('select[name="department"]').value;
+
+            if (!fullName || !email || !phone || !dept) {
+                showNotification(
+                    currentLang === 'ar' ? '⚠️ حقول مطلوبة' : '⚠️ Required Fields',
+                    currentLang === 'ar'
+                        ? 'يرجى ملء جميع الحقول المطلوبة: الاسم، البريد الإلكتروني، رقم الهاتف، والقسم.'
+                        : 'Please fill all required fields: Name, Email, Phone, and Department.',
+                    'error'
+                );
+                return;
+            }
+
+            // Show loading state on button
+            submitBtn.querySelector('span').textContent = currentLang === 'ar' ? '⏳ جاري الإرسال...' : '⏳ Sending...';
             submitBtn.disabled = true;
             submitBtn.style.opacity = '0.6';
-            
-            // Get form data
-            const formData = {
-                from_name: document.querySelector('input[name="full_name"]').value,
-                from_email: document.querySelector('input[name="email"]').value,
-                phone_number: document.querySelector('input[name="phone"]').value,
-                department: document.querySelector('select[name="department"]').options[document.querySelector('select[name="department"]').selectedIndex].text,
-                message: document.querySelector('textarea[name="message"]').value,
-                submission_date: new Date().toLocaleString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                })
+
+            // Build the params object — names must EXACTLY match your EmailJS template variables
+            const templateParams = {
+                from_name       : fullName,
+                from_email      : email,
+                phone_number    : phone,
+                department      : document.querySelector('select[name="department"]').options[
+                                      document.querySelector('select[name="department"]').selectedIndex
+                                  ].text,
+                message         : document.querySelector('textarea[name="message"]').value.trim() || 'لم يُدخل رسالة',
+                submission_date : new Date().toLocaleString('en-GB', {
+                    day: '2-digit', month: 'long', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                }),
+                to_email        : 'mohammed144s@gmail.com'
             };
-            
-            // Send email using EmailJS
-            emailjs.send('service_7r40i1o', 'template_xen9csb', formData)
+
+            console.log('Sending to EmailJS with params:', templateParams);
+
+            // Send via EmailJS
+            emailjs.send('service_7r40i1o', 'template_xen9csb', templateParams)
             .then(function(response) {
-                console.log('SUCCESS!', response.status, response.text);
-                
-                // Show success notification
+                console.log('EmailJS SUCCESS:', response.status, response.text);
+
                 showNotification(
-                    currentLang === 'ar' 
-                        ? '✅ تم إرسال طلبك بنجاح!' 
-                        : '✅ Application Sent Successfully!',
+                    currentLang === 'ar' ? '✅ تم الإرسال بنجاح!' : '✅ Sent Successfully!',
                     currentLang === 'ar'
-                        ? 'سيتصل بك فريق القبول لدينا خلال 24 ساعة. شكراً لاختيارك معهد انشون!'
-                        : 'Our admissions team will contact you within 24 hours. Thank you for choosing Inchon Institute!',
+                        ? 'تم استلام طلبك. سيتواصل معك فريق القبول خلال 24 ساعة.\n\nشكراً لاختيارك معهد انشون!'
+                        : 'Your application has been received.\nOur team will contact you within 24 hours.\n\nThank you for choosing Inchon Institute!',
                     'success'
                 );
-                
-                // Reset form
-                document.querySelector('form').reset();
+
+                form.reset();
                 submitBtn.querySelector('span').textContent = originalBtnText;
                 submitBtn.disabled = false;
                 submitBtn.style.opacity = '1';
             })
             .catch(function(error) {
-                console.error('FAILED...', error);
-                
-                // Show error notification
+                console.error('EmailJS ERROR:', JSON.stringify(error));
+
+                // Show the actual error so we can debug it
+                const errDetail = error && error.text ? error.text : JSON.stringify(error);
+
                 showNotification(
+                    currentLang === 'ar' ? '❌ فشل الإرسال' : '❌ Failed to Send',
                     currentLang === 'ar'
-                        ? '❌ فشل الإرسال'
-                        : '❌ Submission Failed',
-                    currentLang === 'ar'
-                        ? 'حدث خطأ في الإرسال. يرجى المحاولة مرة أخرى أو الاتصال بنا مباشرة على:\n📧 mohammed144s@gmail.com\n📞 +249 91 291 7704'
-                        : 'An error occurred. Please try again or contact us directly at:\n📧 mohammed144s@gmail.com\n📞 +249 91 291 7704',
+                        ? 'خطأ: ' + errDetail + '\n\nيرجى الاتصال بنا مباشرة:\n📧 mohammed144s@gmail.com\n📞 +249 91 291 7704'
+                        : 'Error: ' + errDetail + '\n\nPlease contact us directly:\n📧 mohammed144s@gmail.com\n📞 +249 91 291 7704',
                     'error'
                 );
-                
+
                 submitBtn.querySelector('span').textContent = originalBtnText;
                 submitBtn.disabled = false;
                 submitBtn.style.opacity = '1';
